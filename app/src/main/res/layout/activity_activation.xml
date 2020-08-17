@@ -1,0 +1,68 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/sign_up_main_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:orientation="vertical">
+
+    <TextView
+
+        android:id="@+id/activation_tittle_tv"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/colorPrimary"
+        android:gravity="center"
+        android:text="@string/activation"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="@color/color_white" />
+
+    <TextView
+        android:id="@+id/mobile_number_tv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="25dp"
+        android:gravity="center"
+        android:text="@string/your_phone"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="@color/color_text" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="25dp"
+        android:gravity="center"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:text="@string/activation_string"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="@color/color_text" />
+
+    <EditText
+        android:id="@+id/activation_code_edt"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="25dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:fontFamily="sans-serif-light"
+        android:gravity="center"
+        android:inputType="number"
+        android:maxLines="1"
+        android:textColor="@color/color_text" />
+
+    <Button
+        android:id="@+id/validate_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="10dp"
+        android:background="@color/colorPrimary"
+        android:gravity="center"
+        android:paddingLeft="40dp"
+        android:paddingRight="40dp"
+        android:text="@string/string_continue"
+        android:textColor="@color/color_white" />
+
+</LinearLayout>

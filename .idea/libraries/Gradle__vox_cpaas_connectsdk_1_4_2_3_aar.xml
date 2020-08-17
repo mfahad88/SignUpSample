@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: vox-cpaas:connectsdk:1.4.2.3@aar">
+    <CLASSES>
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/4e17ce565b0d4c6f4728f23025bacd85/connectsdk-1.4.2.3/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/4e17ce565b0d4c6f4728f23025bacd85/connectsdk-1.4.2.3/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/4e17ce565b0d4c6f4728f23025bacd85/connectsdk-1.4.2.3/res" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
