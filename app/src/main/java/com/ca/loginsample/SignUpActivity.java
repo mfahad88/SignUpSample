@@ -27,6 +27,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Adapter;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
@@ -70,49 +71,8 @@ public class SignUpActivity extends Activity {
             mSignUpButtonTv = findViewById(R.id.sign_up_button_tv);
             spinner_country=findViewById(R.id.spinner_country);
             countryList=this.getResources().getStringArray(R.array.CountryCodes);
-            for (int i = 0; i < countryList.length; i++) {
-                Log.e("Country",countryList[i]);
-
-            }
-//            spinner_country.setAdapter(new Ad);
-            /*spinner_country.setAdapter(new BaseAdapter() {
-                @Override
-                public int getCount() {
-                    return countryList.length;
-                }
-
-                @Override
-                public Object getItem(int i) {
-                    return countryList[i];
-                }
-
-                @Override
-                public long getItemId(int i) {
-                    return 0;
-                }
-
-                @Override
-                public View getView(int i, View view, ViewGroup viewGroup) {
-                    if(view==null){
-                        view= LayoutInflater.from(getApplicationContext()).inflate(android.R.layout.simple_dropdown_item_1line,viewGroup,false);
-                    }
-                    TextView textView=view.findViewById(android.R.id.text1);
-                    textView.setText(countryList[i]);
-                    return view;
-                }
-            });*/
-
-            spinner_country.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                    Toast.makeText(SignUpActivity.this, ""+adapterView.getItemAtPosition(i), Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onNothingSelected(AdapterView<?> adapterView) {
-
-                }
-            });
+            ArrayAdapter<String> adapter=new ArrayAdapter<>(this,android.R.layout.select_dialog_item,countryList);
+            spinner_country.setAdapter(adapter);
 
 
             //Sign Up button click listener

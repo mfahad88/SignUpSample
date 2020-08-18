@@ -59,12 +59,13 @@
                    android:id="@+id/spinner_country"
                    android:layout_width="0dp"
                    android:layout_height="50dp"
-                   android:layout_weight="0.2"></AutoCompleteTextView>
+                   android:layout_weight="0.3"
+                   android:completionThreshold="2"></AutoCompleteTextView>
                <EditText
                    android:id="@+id/mobile_number_edt"
                    android:layout_width="0dp"
                    android:layout_height="50dp"
-                   android:layout_weight="0.8"
+                   android:layout_weight="0.6"
                    android:hint="@string/phone_number"
                    android:inputType="phone"
                    android:maxLines="1"
@@ -79,7 +80,7 @@
                 android:id="@+id/password_edt"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:hint="Password(Optional)"
+                android:hint="Password"
                 android:inputType="textPassword"
                 android:maxLines="1"
                 android:paddingLeft="15dp"
