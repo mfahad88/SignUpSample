@@ -26,6 +26,7 @@
     <string name="error_empty_otp">Please enter OTP</string>
     <string name="login_success_message">Login Success</string>
     <string name="login_failure_message">Login Failure</string>
+    <string name="error_password">Please enter a valid password</string>
     <string-array name="CountryCodes" >
         <item>+93 AF</item>
         <item>+355 AL</item>

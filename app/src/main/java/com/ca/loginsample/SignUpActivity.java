@@ -1,5 +1,6 @@
 package com.ca.loginsample;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog.Builder;
 import android.app.ProgressDialog;
@@ -18,6 +19,7 @@ import androidx.core.content.ContextCompat;
 import androidx.multidex.MultiDex;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,6 +33,7 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,10 +41,18 @@ import android.widget.Toast;
 import com.ca.Utils.CSConstants;
 import com.ca.Utils.CSEvents;
 import com.ca.dao.CSAppDetails;
+import com.ca.loginsample.client.ApiClient;
 import com.ca.wrapper.CSClient;
 import com.ca.wrapper.CSDataProvider;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.util.Random;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * This class will initialize the application to server and generate OTP
@@ -51,7 +62,7 @@ public class SignUpActivity extends Activity {
     private TextView mSignUpButtonTv;
     private EditText mMobileNumberEdt;
     private EditText mUserPassWordEdt;
-    private String countryCode = "";
+    private String countryCode = "+92";
     private ProgressDialog mProgressDialog;
     private Handler mProgressBarHandler = new Handler();
     private int mProgressBarDelay = 40000;
@@ -59,6 +70,11 @@ public class SignUpActivity extends Activity {
     private CSClient CSClientObj = new CSClient();
     private AutoCompleteTextView spinner_country;
     private String countryList[];
+    private TelephonyManager tm;
+    private ProgressBar progress_circular;
+
+
+    @SuppressLint("NewApi")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -70,16 +86,36 @@ public class SignUpActivity extends Activity {
             mUserPassWordEdt = findViewById(R.id.password_edt);
             mSignUpButtonTv = findViewById(R.id.sign_up_button_tv);
             spinner_country=findViewById(R.id.spinner_country);
+            progress_circular=findViewById(R.id.progress_circular);
             countryList=this.getResources().getStringArray(R.array.CountryCodes);
+            tm = (TelephonyManager)this.getSystemService(Context.TELEPHONY_SERVICE);
+            String countryCodeValue = tm.getNetworkCountryIso();
+
             ArrayAdapter<String> adapter=new ArrayAdapter<>(this,android.R.layout.select_dialog_item,countryList);
             spinner_country.setAdapter(adapter);
+            spinner_country.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                    Toast.makeText(SignUpActivity.this, ""+adapterView.getAdapter().getItem(i), Toast.LENGTH_SHORT).show();
+                }
+            });
+            for (int i = 0; i <spinner_country.getAdapter().getCount() ; i++) {
+                String country=spinner_country.getAdapter().getItem(i).toString().substring(
+                        spinner_country.getAdapter().getItem(i).toString().indexOf(" "),
+                        spinner_country.getAdapter().getItem(i).toString().length()
+                );
 
 
+                if(country.trim().equalsIgnoreCase(countryCodeValue.toUpperCase().trim())){
+                    spinner_country.setText(spinner_country.getAdapter().getItem(i).toString(),false);
+                }
+
+            }
             //Sign Up button click listener
             mSignUpButtonTv.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
+                    countryCode=spinner_country.getText().subSequence(0,spinner_country.getText().toString().indexOf(" ")).toString();
                     // need to check number is empty or not to proceed registration
 
                     if (mMobileNumberEdt.getText().toString().trim().equals("")) {
@@ -98,13 +134,43 @@ public class SignUpActivity extends Activity {
                         // if given number is valid we will proceed for registration otherwise show error message to user
                         if (Constants.phoneNumber != null) {
                             // if user not gave any password we have to create random password
-                            if (mUserPassWordEdt.getText().toString().equals("")) {
-                                Constants.password = String.valueOf(new Random().nextInt(1000000));
+                            if (mUserPassWordEdt.getText().toString().equals("") || mUserPassWordEdt.getText().toString().length()<6) {
+                                mUserPassWordEdt.setText(R.string.error_password);
                             } else {
+                                progress_circular.setVisibility(View.VISIBLE);
                                 Constants.password = mUserPassWordEdt.getText().toString();
+                                ApiClient.getInstance(ApiClient.BASE_URL).createuser(Constants.phoneNumber,Constants.password)
+                                        .enqueue(new Callback<JsonElement>() {
+                                            @Override
+                                            public void onResponse(Call<JsonElement> call, Response<JsonElement> response) {
+                                                if(response.isSuccessful()){
+                                                    JsonObject object=response.body().getAsJsonObject();
+                                                    JsonObject data=object.getAsJsonObject("data");
+                                                    String message=data.get("message").getAsString();
+                                                    if(message.equalsIgnoreCase("User created")) {
+                                                        progress_circular.setVisibility(View.GONE);
+                                                        Intent intent = new Intent(getApplicationContext(), ActivationActivity.class);
+                                                        startActivity(intent);
+                                                        finish();
+
+
+                                                    }else {
+                                                        Toast.makeText(SignUpActivity.this, "" + message, Toast.LENGTH_SHORT).show();
+                                                    }
+
+                                                }
+                                            }
+
+                                            @Override
+                                            public void onFailure(Call<JsonElement> call, Throwable t) {
+                                                t.printStackTrace();
+                                                Toast.makeText(SignUpActivity.this, "Error: "+t.getMessage(), Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+
                             }
                             // need to show confirmation message to user to check the number once
-                            showAlertToUser();
+//                            showAlertToUser();
                         } else {
                             mMobileNumberEdt.setError(getString(R.string.error_empty_number));
                         }

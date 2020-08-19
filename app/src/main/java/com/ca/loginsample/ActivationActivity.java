@@ -12,6 +12,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import androidx.multidex.MultiDex;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import android.os.StrictMode;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -21,7 +23,16 @@ import android.widget.Toast;
 
 import com.ca.Utils.CSConstants;
 import com.ca.Utils.CSEvents;
+import com.ca.loginsample.client.ApiClient;
 import com.ca.wrapper.CSClient;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
+import java.io.IOException;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class ActivationActivity extends Activity {
     private ProgressDialog mProgressBar;
@@ -34,12 +45,19 @@ public class ActivationActivity extends Activity {
     private CSClient CSClientObj = new CSClient();
     private String mMobileNumber = "";
     private String region = "";
+    private static final String PROJECT_ID="pid_2767077b_ee96_4a42_93c8_affbd5ec4a18";
+    private static final String AUTH_TOKEN="52883082_ad50_4f19_a6e5_8fb1f3751ef1";
+    private static final String USERNAME=Constants.phoneNumber;
+    private static final String PASSWORD=Constants.password;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_activation);
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+
+        StrictMode.setThreadPolicy(policy);
         mMobileNumberTv = findViewById(R.id.mobile_number_tv);
         mValidateOTPButton = findViewById(R.id.validate_button);
         mActivationCodeEdt = findViewById(R.id.activation_code_edt);
@@ -64,7 +82,58 @@ public class ActivationActivity extends Activity {
                     mValidateOTPButton.setEnabled(false);
                     showProgressbar();
                     // Activation API to validate OTP
-                    CSClientObj.activate(mMobileNumber, mActivationCodeEdt.getText().toString());
+//                    CSClientObj.activate(mMobileNumber, mActivationCodeEdt.getText().toString());
+                    ApiClient.getInstance(ApiClient.BASE_URL).activateaccount(Constants.phoneNumber,Constants.password,mActivationCodeEdt.getText().toString())
+                            .enqueue(new Callback<JsonElement>() {
+                                @Override
+                                public void onResponse(Call<JsonElement> call, Response<JsonElement> response) {
+                                    if(response.isSuccessful()){
+                                        JsonObject object=response.body().getAsJsonObject();
+                                        JsonObject data=object.getAsJsonObject("data");
+                                        String message=data.get("message").getAsString();
+
+                                        if(message.equalsIgnoreCase("User Activated")){
+
+                                            ApiClient.getInstanceVOX(ApiClient.BASE_VOX).user(PROJECT_ID,AUTH_TOKEN,USERNAME,PASSWORD)
+                                                    .enqueue(new Callback<JsonElement>() {
+                                                        @Override
+                                                        public void onResponse(Call<JsonElement> call, Response<JsonElement> response) {
+                                                            if(response.isSuccessful()){
+                                                                JsonObject main_object=response.body().getAsJsonObject();
+                                                                JsonObject data=main_object.getAsJsonObject("data");
+                                                                String message=data.get("message").getAsString();
+                                                                if(message.equalsIgnoreCase("User created")) {
+                                                                    Intent intent=new Intent(getApplicationContext(),AboutActivity.class);
+                                                                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                                                    startActivity(intent);
+                                                                    finish();
+                                                                }else{
+                                                                    Toast.makeText(ActivationActivity.this, ""+message, Toast.LENGTH_SHORT).show();
+                                                                }
+                                                            }
+                                                        }
+
+                                                        @Override
+                                                        public void onFailure(Call<JsonElement> call, Throwable t) {
+                                                            t.printStackTrace();
+                                                        }
+                                                    });
+
+                                        }else{
+                                            Toast.makeText(ActivationActivity.this, ""+message, Toast.LENGTH_SHORT).show();
+                                            dismissProgressbar();
+                                        }
+                                    }else{
+                                      dismissProgressbar();
+                                    }
+                                }
+
+                                @Override
+                                public void onFailure(Call<JsonElement> call, Throwable t) {
+                                    t.printStackTrace();
+                                    dismissProgressbar();
+                                }
+                            });
                 } else {
                     mActivationCodeEdt.setError(getString(R.string.error_empty_otp));
                 }
@@ -73,34 +142,7 @@ public class ActivationActivity extends Activity {
     }
 
 
-    @Override
-    public void onResume() {
-        super.onResume();
 
-        try {
-            // Register the receivers for SDK events
-            MainActivityReceiverObj = new MainActivityReceiver();
-            IntentFilter filter = new IntentFilter(CSEvents.CSCLIENT_NETWORKERROR);
-            filter.addAction(CSEvents.CSCLIENT_LOGIN_RESPONSE);
-            filter.addAction(CSEvents.CSCLIENT_ACTIVATION_RESPONSE);
-            LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(MainActivityReceiverObj, filter);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-
-        try {
-            // unregister the receiver
-            LocalBroadcastManager.getInstance(getApplicationContext()).unregisterReceiver(MainActivityReceiverObj);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
 
     @Override
     public void onBackPressed() {
@@ -118,60 +160,10 @@ public class ActivationActivity extends Activity {
     /**
      * BroadCastReceiver to handle SDK events
      */
-    public class MainActivityReceiver extends BroadcastReceiver {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            try {
-                // enable validate button once receive event from SDK
-                mValidateOTPButton.setEnabled(true);
-                if (intent.getAction().equals(CSEvents.CSCLIENT_NETWORKERROR)) {
-                    // if network fluctuation came in between registration  dismiss the progressbar and show netwrok error message to user
-
-                    dismissProgressbar();
-                    Toast.makeText(getApplicationContext(), getString(R.string.network_error_message), Toast.LENGTH_SHORT).show();
-
-                } else if (intent.getAction().equals(CSEvents.CSCLIENT_LOGIN_RESPONSE)) {
-
-                    // if Login is success dismiss the progressbar show message to user
-                    // if Login failure show the error message to user
-
-                    if (intent.getStringExtra(CSConstants.RESULT).equals(CSConstants.RESULT_SUCCESS)) {
-                        dismissProgressbar();
-                        Toast.makeText(getApplicationContext(), getString(R.string.login_success_message), Toast.LENGTH_SHORT).show();
-                        finish();
-                    } else {
-                        dismissProgressbar();
-                        Toast.makeText(getApplicationContext(), getString(R.string.login_failure_message), Toast.LENGTH_SHORT).show();
-                    }
-                } else if (intent.getAction().equals(CSEvents.CSCLIENT_ACTIVATION_RESPONSE)) {
-
-                    // if Activation is success dismiss the progressbar and call Login API
-                    // if Activation failure show the error message to user
-
-                    if (intent.getStringExtra(CSConstants.RESULT).equals(CSConstants.RESULT_SUCCESS)) {
-                        Constants.isAlreadySignedUp = true;
-                        if (region == null || region.equals("")) {
-                            region = "+91";
-                        }
-                        // Login API to login to server with credentials
-                        CSClientObj.login(Constants.phoneNumber, Constants.password);
-                    } else {
-                        dismissProgressbar();
-                        Toast.makeText(getApplicationContext(), "Wrong Code.", Toast.LENGTH_SHORT).show();
-
-                    }
-                }
 
 
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
-    }
 
 
-    MainActivityReceiver MainActivityReceiverObj = new MainActivityReceiver();
 
     /**
      * This method will show the progressbar while validating the OTP

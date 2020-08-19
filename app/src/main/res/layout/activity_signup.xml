@@ -105,5 +105,13 @@
                 android:textSize="16sp" />
         </LinearLayout>
 
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/sign_up_details_layout"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="30dp"
+            android:visibility="gone"
+            android:id="@+id/progress_circular"/>
     </RelativeLayout>
 </ScrollView>
