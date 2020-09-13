@@ -45,7 +45,7 @@ public class ActivationActivity extends Activity {
     private CSClient CSClientObj = new CSClient();
     private String mMobileNumber = "";
     private String region = "";
-    private static final String PROJECT_ID="pid_2767077b_ee96_4a42_93c8_affbd5ec4a18";
+    public static final String PROJECT_ID="pid_2767077b_ee96_4a42_93c8_affbd5ec4a18";
     private static final String AUTH_TOKEN="52883082_ad50_4f19_a6e5_8fb1f3751ef1";
     private static final String USERNAME=Constants.phoneNumber;
     private static final String PASSWORD=Constants.password;
